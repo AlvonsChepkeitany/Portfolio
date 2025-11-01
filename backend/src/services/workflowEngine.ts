@@ -133,6 +133,9 @@ export class WorkflowEngine {
   private async createTaskForNode(workflowInstanceId: string, nodeDefinitionId: string): Promise<void> {
     const node = await prisma.nodeDefinition.findUnique({
       where: { id: nodeDefinitionId },
+      include: {
+        workflow: true,
+      },
     });
 
     if (!node) {
@@ -166,7 +169,7 @@ export class WorkflowEngine {
     }
 
     // Create task instance
-    await prisma.taskInstance.create({
+    const task = await prisma.taskInstance.create({
       data: {
         workflowInstanceId,
         nodeDefinitionId,
@@ -176,7 +179,22 @@ export class WorkflowEngine {
       },
     });
 
-    // TODO: Create notification for assignee
+    // Create notification for assignee
+    const { default: notificationService } = await import('./notificationService');
+    
+    if (node.type === NodeType.APPROVAL) {
+      await notificationService.notifyApprovalRequest(
+        task.id,
+        assigneeId,
+        node.workflow.name
+      );
+    } else {
+      await notificationService.notifyTaskAssigned(
+        task.id,
+        assigneeId,
+        node.workflow.name
+      );
+    }
 
     logger.info(`Task created for node ${nodeDefinitionId}`);
   }

@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes';
 import workflowRoutes from './routes/workflowRoutes';
 import taskRoutes from './routes/taskRoutes';
+import notificationRoutes from './routes/notificationRoutes';
 import { errorHandler, notFound } from './middleware/errorHandler';
 import logger from './config/logger';
 
@@ -36,6 +37,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/workflows', workflowRoutes);
 app.use('/api/tasks', taskRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Error handling
 app.use(notFound);

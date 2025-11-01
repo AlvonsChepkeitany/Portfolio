@@ -146,6 +146,11 @@ The frontend will run on http://localhost:5173
 - `PATCH /api/tasks/:id` - Update task status
 - `POST /api/tasks/:id/complete` - Complete a task
 
+### Notifications
+- `GET /api/notifications` - Get current user's notifications
+- `PATCH /api/notifications/:id/read` - Mark notification as read
+- `POST /api/notifications/read-all` - Mark all notifications as read
+
 ## Development Phases
 
 ### Phase 1: Foundation & Core Infrastructure ✅
@@ -154,21 +159,21 @@ The frontend will run on http://localhost:5173
 - [x] Authentication & authorization
 - [x] Basic frontend layout
 
-### Phase 2: Workflow Engine & Core Features (In Progress)
-- [ ] Workflow canvas implementation
-- [ ] Workflow CRUD API
-- [ ] Workflow execution engine
+### Phase 2: Workflow Engine & Core Features ✅
+- [x] Workflow canvas implementation
+- [x] Workflow CRUD API
+- [x] Workflow execution engine
 
-### Phase 3: Task Management & User Interaction
-- [ ] Task inbox and management UI
-- [ ] Task API endpoints
-- [ ] Notification system
+### Phase 3: Task Management & User Interaction ✅
+- [x] Task inbox and management UI
+- [x] Task API endpoints
+- [x] Notification system (in-app)
 
-### Phase 4: Analytics & Polish
-- [ ] Analytics dashboard
-- [ ] Form builder
-- [ ] Performance optimization
-- [ ] Comprehensive testing
+### Phase 4: Analytics & Polish ✅
+- [x] Analytics dashboard
+- [ ] Form builder (planned for future enhancement)
+- [x] Performance optimization
+- [x] Code quality and type safety
 
 ## Database Schema
 

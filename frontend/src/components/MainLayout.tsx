@@ -25,6 +25,7 @@ import {
 } from '@mui/icons-material';
 import { useAuthStore } from '../store/authStore';
 import { authService } from '../services/auth/authService';
+import NotificationBell from './NotificationBell';
 
 const drawerWidth = 240;
 
@@ -93,6 +94,7 @@ export default function MainLayout() {
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             {user?.name}
           </Typography>
+          <NotificationBell />
           <Button color="inherit" onClick={handleLogout} startIcon={<LogoutIcon />}>
             Logout
           </Button>
