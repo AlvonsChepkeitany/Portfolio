@@ -4,6 +4,10 @@ import CssBaseline from '@mui/material/CssBaseline';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
+import TasksPage from './pages/TasksPage';
+import WorkflowsPage from './pages/WorkflowsPage';
+import WorkflowBuilderPage from './pages/WorkflowBuilderPage';
+import AnalyticsPage from './pages/AnalyticsPage';
 import MainLayout from './components/MainLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -37,9 +41,11 @@ function App() {
           >
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<DashboardPage />} />
-            <Route path="tasks" element={<div>Tasks Page - Coming Soon</div>} />
-            <Route path="workflows" element={<div>Workflows Page - Coming Soon</div>} />
-            <Route path="analytics" element={<div>Analytics Page - Coming Soon</div>} />
+            <Route path="tasks" element={<TasksPage />} />
+            <Route path="workflows" element={<WorkflowsPage />} />
+            <Route path="workflows/builder" element={<WorkflowBuilderPage />} />
+            <Route path="workflows/builder/:id" element={<WorkflowBuilderPage />} />
+            <Route path="analytics" element={<AnalyticsPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

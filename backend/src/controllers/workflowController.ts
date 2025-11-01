@@ -121,19 +121,21 @@ export const startWorkflow = async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    // Create workflow instance
-    const instance = await prisma.workflowInstance.create({
-      data: {
-        workflowDefinitionId: id,
-        startedBy: userId,
-        status: 'RUNNING',
+    // Import workflow engine
+    const { default: workflowEngine } = await import('../services/workflowEngine');
+    
+    // Start the workflow using the engine
+    const instanceId = await workflowEngine.startWorkflow(id, userId);
+
+    const instance = await prisma.workflowInstance.findUnique({
+      where: { id: instanceId },
+      include: {
+        workflowDefinition: true,
+        tasks: true,
       },
     });
 
-    // TODO: Implement workflow engine to start the first task
-    // This will be handled by WorkflowEngine service
-
-    logger.info(`Workflow instance started: ${instance.id}`);
+    logger.info(`Workflow instance started: ${instanceId}`);
 
     res.status(201).json(instance);
   } catch (error) {

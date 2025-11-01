@@ -96,17 +96,18 @@ export const completeTask = async (req: AuthRequest, res: Response) => {
       return res.status(403).json({ error: 'Not authorized to complete this task' });
     }
 
-    const updatedTask = await prisma.taskInstance.update({
+    // Import workflow engine
+    const { default: workflowEngine } = await import('../services/workflowEngine');
+    
+    // Use workflow engine to complete task and progress workflow
+    await workflowEngine.completeTask(id, outputData);
+
+    const updatedTask = await prisma.taskInstance.findUnique({
       where: { id },
-      data: {
-        status: 'COMPLETED',
-        outputData,
-        completedAt: new Date(),
+      include: {
+        workflowInstance: true,
       },
     });
-
-    // TODO: Trigger workflow engine to progress to next step
-    // This will be handled by WorkflowEngine service
 
     logger.info(`Task ${id} completed by user ${userId}`);
 
