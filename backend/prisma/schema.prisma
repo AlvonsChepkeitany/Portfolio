@@ -1,0 +1,184 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  name         String
+  role         Role     @default(MEMBER)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  teams                  UserTeam[]
+  workflowsCreated       WorkflowDefinition[]
+  workflowInstancesStarted WorkflowInstance[]  @relation("WorkflowStartedBy")
+  tasksAssigned          TaskInstance[]
+
+  @@map("users")
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  MEMBER
+}
+
+model Team {
+  id               String   @id @default(uuid())
+  name             String
+  subscriptionPlan String   @default("free") @map("subscription_plan")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  members UserTeam[]
+
+  @@map("teams")
+}
+
+model UserTeam {
+  userId String @map("user_id")
+  teamId String @map("team_id")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@id([userId, teamId])
+  @@map("user_teams")
+}
+
+model WorkflowTemplate {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  isPublic    Boolean  @default(false) @map("is_public")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("workflow_templates")
+}
+
+// Phase 2: Workflow Engine Models
+model WorkflowDefinition {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  version     Int      @default(1)
+  createdById String   @map("created_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  createdBy User               @relation(fields: [createdById], references: [id])
+  nodes     NodeDefinition[]
+  edges     EdgeDefinition[]
+  instances WorkflowInstance[]
+
+  @@map("workflow_definitions")
+}
+
+model NodeDefinition {
+  id           String   @id @default(uuid())
+  workflowId   String   @map("workflow_id")
+  type         NodeType
+  positionX    Float    @map("position_x")
+  positionY    Float    @map("position_y")
+  data         Json     // Stores all node configuration (assignee, form fields, condition logic, etc.)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  workflow      WorkflowDefinition @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  outgoingEdges EdgeDefinition[]   @relation("SourceNode")
+  incomingEdges EdgeDefinition[]   @relation("TargetNode")
+  taskInstances TaskInstance[]
+
+  @@map("node_definitions")
+}
+
+enum NodeType {
+  START
+  TASK
+  APPROVAL
+  CONDITION
+  END
+}
+
+model EdgeDefinition {
+  id           String   @id @default(uuid())
+  workflowId   String   @map("workflow_id")
+  sourceNodeId String   @map("source_node_id")
+  targetNodeId String   @map("target_node_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  workflow   WorkflowDefinition @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  sourceNode NodeDefinition     @relation("SourceNode", fields: [sourceNodeId], references: [id], onDelete: Cascade)
+  targetNode NodeDefinition     @relation("TargetNode", fields: [targetNodeId], references: [id], onDelete: Cascade)
+
+  @@map("edge_definitions")
+}
+
+model WorkflowInstance {
+  id                 String           @id @default(uuid())
+  workflowDefinitionId String         @map("workflow_definition_id")
+  status             WorkflowStatus   @default(RUNNING)
+  startedById        String           @map("started_by_id")
+  currentNodeId      String?          @map("current_node_id")
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
+  completedAt        DateTime?        @map("completed_at")
+
+  // Relations
+  workflowDefinition WorkflowDefinition @relation(fields: [workflowDefinitionId], references: [id])
+  startedBy          User               @relation("WorkflowStartedBy", fields: [startedById], references: [id])
+  tasks              TaskInstance[]
+
+  @@map("workflow_instances")
+}
+
+enum WorkflowStatus {
+  RUNNING
+  COMPLETED
+  CANCELLED
+  FAILED
+}
+
+model TaskInstance {
+  id                 String       @id @default(uuid())
+  workflowInstanceId String       @map("workflow_instance_id")
+  nodeDefinitionId   String       @map("node_definition_id")
+  assigneeId         String       @map("assignee_id")
+  status             TaskStatus   @default(PENDING)
+  dueDate            DateTime?    @map("due_date")
+  completedAt        DateTime?    @map("completed_at")
+  outputData         Json?        @map("output_data") // Data submitted when completing the task
+  createdAt          DateTime     @default(now()) @map("created_at")
+  updatedAt          DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  workflowInstance WorkflowInstance @relation(fields: [workflowInstanceId], references: [id], onDelete: Cascade)
+  nodeDefinition   NodeDefinition   @relation(fields: [nodeDefinitionId], references: [id])
+  assignee         User             @relation(fields: [assigneeId], references: [id])
+
+  @@map("task_instances")
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  BLOCKED
+}
