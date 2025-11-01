@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 import logger from '../config/logger';
+import { AuthRequest } from '../middleware/auth';
 
 const prisma = new PrismaClient();
 
@@ -127,7 +128,7 @@ export const login = async (req: Request, res: Response) => {
 
 export const getProfile = async (req: Request, res: Response) => {
   try {
-    const authReq = req as any;
+    const authReq = req as AuthRequest;
     const userId = authReq.user?.id;
 
     if (!userId) {
